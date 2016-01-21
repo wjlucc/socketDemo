@@ -1,4 +1,4 @@
-package com.server;
+package com.socket3;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,47 +6,46 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.net.InetAddress;
 import java.net.Socket;
 
 public class ServerThread extends Thread {
+	private Socket socket = null;
 
-	public Socket socket = null;
-	
-	public ServerThread(Socket socket){
-		this.socket = socket;		
+	public ServerThread(Socket socket) {
+		this.socket = socket;
 	}
-	
-	public void run(){
+
+	public void run() {
+
 		try {
-			
-			//输入流用于响应客户端发送的信息
-			InputStream inputStream = socket.getInputStream();
-			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-			
+			// 获得输入流，并通过这个输入流获取信息
+			InputStream inputStream = this.socket.getInputStream();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+
 			String info = null;
-			while((info = bufferedReader.readLine()) != null){
-				System.out.println("客户端发送的消息是：" + info);				
-			}	
-			socket.shutdownInput();
-			
+			while ((info = reader.readLine()) != null) {
+				System.out.println(info);
+			}
+			socket.shutdownInput(); // 传送结束立即关闭socket输入流资源，这点很重要。
+
+			// 进行响应
+			// 获得输出流并向外部写信息。
 			OutputStream outputStream = socket.getOutputStream();
 			PrintWriter printWriter = new PrintWriter(outputStream);
 			printWriter.write("欢迎登陆！");
 			printWriter.flush();
 			socket.shutdownOutput();
-			
+
+			// 5.关闭其他资源
 			printWriter.close();
 			outputStream.close();
-			bufferedReader.close();
+			reader.close();
 			inputStream.close();
-			socket.close();
-			
-			
+			this.socket.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 	}
 }
